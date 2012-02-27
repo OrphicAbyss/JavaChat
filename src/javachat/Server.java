@@ -1,7 +1,9 @@
 package javachat;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 /**
@@ -11,15 +13,13 @@ import java.util.ArrayList;
  */
 public class Server implements Runnable, SocketHandler {
 	private int port;
-	private ChatWindow gui;
 	private boolean connected;
 	private boolean disconnect;
 	private ArrayList<SocketController> clients;
 	private ServerSocket srvr;
 	
 	
-	public Server(ChatWindow gui, int port){
-		this.gui = gui;
+	public Server(int port){
 		this.port = port;
 		disconnect = false;
 		connected = false;
@@ -40,13 +40,13 @@ public class Server implements Runnable, SocketHandler {
 			while (!disconnect){
 				Socket skt = srvr.accept();
 				clients.add(new SocketController(this, skt));
-				gui.println("Client connected!");
+				JavaChat.println("Client connected!");
 			}
 		} catch (SocketException ex) {
 			if (!ex.getMessage().equals("socket closed"))
-				gui.println("Socket Exception: " + ex.getMessage());
+				JavaChat.println("Socket Exception: " + ex.getMessage());
 		} catch (IOException ex) {
-			gui.println("IO Exception: " + ex.getMessage());
+			JavaChat.println("IO Exception: " + ex.getMessage());
 		}
 	}
 	
@@ -65,7 +65,7 @@ public class Server implements Runnable, SocketHandler {
 				if (msg.endsWith("QUIT")){
 					disconnect();
 				} else {
-					ChatWindow.instance.println("Unknown command from connection: " + msg);
+					JavaChat.println("Unknown command from connection: " + msg);
 				}
 			} else if (msg.startsWith("MSG")) {
 				sendMsg(socketControl, msg.substring(4));
@@ -89,9 +89,9 @@ public class Server implements Runnable, SocketHandler {
 		try {
 			srvr.close();
 		} catch (IOException ex) {
-			gui.println("Exception when closing socket: " + ex.getMessage());
+			JavaChat.println("Exception when closing socket: " + ex.getMessage());
 		}
-		gui.println("No longer listening for connections.");
+		JavaChat.println("No longer listening for connections.");
 		
 		UPnP.UnregisterPort();
 	}

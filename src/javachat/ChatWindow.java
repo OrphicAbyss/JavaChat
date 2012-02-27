@@ -1,5 +1,9 @@
 package javachat;
 
+import java.awt.Rectangle;
+import javax.swing.BoundedRangeModel;
+import javax.swing.JComponent;
+import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
 
 /**
@@ -7,17 +11,11 @@ import javax.swing.SwingUtilities;
  * @author DrLabman
  */
 public class ChatWindow extends javax.swing.JFrame {
-	Server server;
-	Client client;
-
 	/**
 	 * Creates new form ChatWindow
 	 */
 	public ChatWindow() {
 		initComponents();
-		
-		server = null;
-		client = null;
 	}
 
 	/**
@@ -43,6 +41,7 @@ public class ChatWindow extends javax.swing.JFrame {
         jButtonSend = new javax.swing.JButton();
         jTextFieldName = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
+        jButtonClear = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -100,20 +99,30 @@ public class ChatWindow extends javax.swing.JFrame {
 
         jLabel1.setText("Name:");
 
+        jButtonClear.setText("Clear");
+        jButtonClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonClearActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 760, Short.MAX_VALUE)
+            .addComponent(jScrollPane1)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jTextFieldMessage, javax.swing.GroupLayout.DEFAULT_SIZE, 697, Short.MAX_VALUE)
+                .addComponent(jTextFieldMessage, javax.swing.GroupLayout.PREFERRED_SIZE, 635, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonSend))
+                .addComponent(jButtonSend)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButtonClear)
+                .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jRadioButtonServer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jRadioButtonClient)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 212, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jLabelHost)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextFieldHostname, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -148,7 +157,8 @@ public class ChatWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldMessage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButtonSend)))
+                    .addComponent(jButtonSend)
+                    .addComponent(jButtonClear)))
         );
 
         pack();
@@ -167,41 +177,22 @@ public class ChatWindow extends javax.swing.JFrame {
 			// Connect
 			if (jRadioButtonServer.isSelected()){
 				// Server
-				println("Starting server on port " + jTextFieldPort.getText());
-				try {
-					int port = Integer.parseInt(jTextFieldPort.getText());
-					// Start up the server
-					server = new Server(this, port);
-					// Make sure the server is up
-					while (server.isConnected() != true){
-						try {
-							Thread.sleep(10);
-						} catch (InterruptedException ex) {}
-					}
-					// Set up a client connecting to our own server for us to send and receive on
-					client = new Client(this,"localhost",port);
-				} catch (NumberFormatException e){
-					println("Port is not a number.");
-				}
+				JavaChat.startServer(jTextFieldPort.getText());
 			} else {
 				// Client
-				println("Connecting to server " + jTextFieldHostname.getText() + ":" + jTextFieldPort.getText());
-				try {
-					String hostname = jTextFieldHostname.getText();
-					int port = Integer.parseInt(jTextFieldPort.getText());
-					client = new Client(this, hostname, port);
-				} catch (NumberFormatException e){
-					println("Port is not a number.");
-				}
+				JavaChat.startClient(jTextFieldHostname.getText(), jTextFieldPort.getText());
 			}
 			lockServerDetails(true);
 		} else {
-			// Disconnect
-			disconnect();
+			// Disconnect the client/server
+			JavaChat.disconnect();
+			// Unlock the server details so we can change them before connecting again
+			lockServerDetails(false);
 		}
 	}//GEN-LAST:event_jToggleButtonOnlineActionPerformed
 
 	private void jButtonSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSendActionPerformed
+		Client client = JavaChat.getClient();
 		if (client != null && client.isConnected()){
 			String msg = jTextFieldMessage.getText();
 			if (!msg.equals("")){
@@ -221,26 +212,9 @@ public class ChatWindow extends javax.swing.JFrame {
 		}
 	}//GEN-LAST:event_jTextFieldMessageKeyTyped
 
-	private void disconnect(){
-		boolean disconnected = false;
-		
-		if (server != null && server.isConnected()){
-			server.disconnect();
-			disconnected = true;
-		}
-		
-		if (client != null && client.isConnected()){
-			client.disconnect();
-			disconnected = true;
-		}
-		
-		// Error if we weren't able to disconnect
-		if (!disconnected){
-			println("Not connected: Unable to disconnect.");
-		}
-		// Unlock the server details so we can change them before connecting again
-		lockServerDetails(false);
-	}
+	private void jButtonClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearActionPerformed
+		jTextAreaChat.setText("");
+	}//GEN-LAST:event_jButtonClearActionPerformed
 	
 	private void lockServerDetails(boolean lock){
 		jRadioButtonServer.setEnabled(!lock);
@@ -254,80 +228,36 @@ public class ChatWindow extends javax.swing.JFrame {
 			@Override
 			public void run() {
 				jTextAreaChat.append(text);
+				
+				JScrollBar scrollBar = jScrollPane1.getVerticalScrollBar();
+				boolean scrollBarAtBottom = isScrollBarFullyExtended(scrollBar);
+				if (scrollBarAtBottom){
+					scrollToBottom(jTextAreaChat);
+				}
 			}
 		});
 	}
+	
+	public static boolean isScrollBarFullyExtended(JScrollBar vScrollBar) {
+        BoundedRangeModel model = vScrollBar.getModel();
+		int bottomPos = model.getExtent() + model.getValue() + 10;
+		int maxPos = model.getMaximum();
+        return bottomPos >= maxPos;
+    }
+	
+	public static void scrollToBottom(JComponent component) {
+        Rectangle visibleRect = component.getVisibleRect();
+        visibleRect.y = component.getHeight() - visibleRect.height;
+        component.scrollRectToVisible(visibleRect);
+    }
 	
 	public void println(final String text){
 		print(text + "\n");
 	}
 	
-	/** The singleton instance of the chat window */
-	public static ChatWindow instance = null;
-	
-	/**
-	 * @param args the command line arguments
-	 */
-	public static void main(String args[]) {
-		/*
-		 * Set the Nimbus look and feel
-		 */
-		//<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /*
-		 * If Nimbus (introduced in Java SE 6) is not available, stay with the
-		 * default look and feel. For details see
-		 * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
-		 */
-		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					javax.swing.UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (ClassNotFoundException ex) {
-			java.util.logging.Logger.getLogger(ChatWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (InstantiationException ex) {
-			java.util.logging.Logger.getLogger(ChatWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (IllegalAccessException ex) {
-			java.util.logging.Logger.getLogger(ChatWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
-			java.util.logging.Logger.getLogger(ChatWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		}
-		//</editor-fold>
-
-		/**
-		 * Disconnect from server/clients when shutting down. Needed by the
-		 * server to remove UPnP mapping.
-		 */
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				if (instance != null){
-					if (instance.server != null && instance.server.isConnected()){
-						instance.server.disconnect();
-					}
-					if (instance.client != null && instance.client.isConnected()){
-						instance.client.disconnect();
-					}
-				}
-				
-			}
-		});
-		
-		/*
-		 * Create and display the form
-		 */
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				instance = new ChatWindow();
-				instance.setVisible(true);
-			}
-		});
-	}
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupModeType;
+    private javax.swing.JButton jButtonClear;
     private javax.swing.JButton jButtonSend;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabelHost;

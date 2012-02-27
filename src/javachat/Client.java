@@ -16,14 +16,14 @@ import java.net.UnknownHostException;
 public class Client implements ChatInterface, SocketHandler {
 	private SocketController socketCtrl;
 	
-	public Client(ChatWindow gui, String hostname, int port){	
+	public Client(String hostname, int port){	
 		try {
 			Socket skt = new Socket(hostname, port);
 			socketCtrl = new SocketController(this, skt);
 		} catch (UnknownHostException ex) {
-			gui.println("Unknown Host: " + ex.getMessage());
+			JavaChat.println("Unknown Host: " + ex.getMessage());
 		} catch (IOException ex) {
-			gui.println("IO Exception: " + ex.getMessage());
+			JavaChat.println("IO Exception: " + ex.getMessage());
 		}
 	}
 
@@ -38,10 +38,10 @@ public class Client implements ChatInterface, SocketHandler {
 				if (msg.endsWith("QUIT")){
 					disconnect();
 				} else {
-					ChatWindow.instance.println("Unknown command from connection: " + msg);
+					JavaChat.println("Unknown command from connection: " + msg);
 				}
 			} else if (msg.startsWith("MSG")) {
-				ChatWindow.instance.println(msg.substring(4)); // Output message
+				JavaChat.println(msg.substring(4)); // Output message
 			}
 		}
 	}
@@ -54,7 +54,7 @@ public class Client implements ChatInterface, SocketHandler {
 	public void sendMsg(String msg, boolean echo) {
 		socketCtrl.sendMsg(msg);
 		if (echo)
-			ChatWindow.instance.println(msg);
+			JavaChat.println(msg);
 	}
 
 	public void sendCmd(String cmd){

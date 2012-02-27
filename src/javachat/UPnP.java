@@ -38,7 +38,7 @@ public class UPnP {
 	 */
 	public static void RegisterPort(int port){
 		if (upnpService != null){
-			ChatWindow.instance.println("UPnP service already started, will shutdown and restart.");
+			JavaChat.println("UPnP service already started, will shutdown and restart.");
 			UnregisterPort();
 		}
 		
@@ -47,11 +47,11 @@ public class UPnP {
 			URL whatismyip = new URL("http://automation.whatismyip.com/n09230945.asp");
 			in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
 			String ip = in.readLine(); //you get the IP as a String
-			ChatWindow.instance.println("External ip address is: " + ip);
+			JavaChat.println("External ip address is: " + ip);
 		} catch (MalformedURLException ex) {
-			ChatWindow.instance.println("Error getting the external ip address: " + ex.getMessage());
+			JavaChat.println("Error getting the external ip address: " + ex.getMessage());
 		} catch (IOException ex) {
-			ChatWindow.instance.println("Error getting the external ip address: " + ex.getMessage());
+			JavaChat.println("Error getting the external ip address: " + ex.getMessage());
 		} finally {
 			try {
 				in.close();
@@ -67,14 +67,14 @@ public class UPnP {
 			// Get hostname
 			String hostname = addr.getHostName();
 			
-			ChatWindow.instance.println("Creating server on: " + hostname + " on ip: " + ipAddr);
+			JavaChat.println("Creating server on: " + hostname + " on ip: " + ipAddr);
 			PortMapping desiredMapping = new PortMapping(port, ipAddr, PortMapping.Protocol.TCP, "JavaChat Port Mapping");
 			
 			upnpService = new UpnpServiceImpl( new PortMappingListener(desiredMapping));//, CreateListenerToPrintUPnPDeviceData());
 			upnpService.getControlPoint().search();
 		} catch (UnknownHostException e) {
-			ChatWindow.instance.println("Error getting the computers hostname: " + e.getMessage());
-			ChatWindow.instance.println("UPnP NAT port mapping may not be in place.");
+			JavaChat.println("Error getting the computers hostname: " + e.getMessage());
+			JavaChat.println("UPnP NAT port mapping may not be in place.");
 		}
 	}
 	
@@ -99,16 +99,16 @@ public class UPnP {
 			public void deviceAdded(Registry registry, Device device) {
 				Service service = device.findService(new UDAServiceId("WANIPConnection"));
 				if (service != null){
-					ChatWindow.instance.println("Found WANIPConnection service.");
+					JavaChat.println("Found WANIPConnection service.");
 				}
 
-				ChatWindow.instance.println("Added device: " + device.getDisplayString());
+				JavaChat.println("Added device: " + device.getDisplayString());
 				for (Service s: device.findServices()){
-					ChatWindow.instance.println("   Has Service: " + s.toString());
+					JavaChat.println("   Has Service: " + s.toString());
 					for (Action a: s.getActions()){
-						ChatWindow.instance.println("      Has Action: " + a.getName());
+						JavaChat.println("      Has Action: " + a.getName());
 						for (ActionArgument aArgs: a.getArguments()){
-							ChatWindow.instance.println("         Has Action Argument: " + aArgs.getName());
+							JavaChat.println("         Has Action Argument: " + aArgs.getName());
 						}
 					}
 				}

@@ -31,7 +31,7 @@ public class SocketController implements Runnable {
 	public void run() {
 		try {
 			setConnected(true);
-			ChatWindow.instance.println("Connected!");
+			JavaChat.println("Connected!");
 			
 			output = new PrintWriter(socket.getOutputStream(), true);
 			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -46,11 +46,11 @@ public class SocketController implements Runnable {
 				}
 			}
 		} catch (java.net.ConnectException e){
-			ChatWindow.instance.println("Connection exception: " + e.getMessage());
+			JavaChat.println("Connection exception: " + e.getMessage());
 		} catch(java.net.SocketException e){
-			ChatWindow.instance.println("Socket Exception: " + e.getMessage());
+			JavaChat.println("Socket Exception: " + e.getMessage());
 		} catch(java.io.IOException e){
-			ChatWindow.instance.println("IO Exception: " + e.getMessage());
+			JavaChat.println("IO Exception: " + e.getMessage());
 		} finally {
 			if (!socket.isOutputShutdown()){
 				sendCmd("QUIT");
@@ -62,7 +62,7 @@ public class SocketController implements Runnable {
 				output.close();
 			if (socket != null && !socket.isClosed()){
 				try { socket.close(); } catch (IOException ex) {
-					ChatWindow.instance.println("Exception closing socket: " + ex.getMessage());
+					JavaChat.println("Exception closing socket: " + ex.getMessage());
 				}
 			}
 			setConnected(false);
