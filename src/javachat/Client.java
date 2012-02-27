@@ -1,6 +1,7 @@
 package javachat;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -15,14 +16,20 @@ import java.net.UnknownHostException;
  */
 public class Client implements SocketHandler {
 	private SocketController socketCtrl;
+	private String name;
 	
-	public Client(String hostname, int port){	
+	public Client(String hostname, int port, String name) throws ConnectException{	
+		this.name = name;
 		try {
 			Socket skt = new Socket(hostname, port);
 			socketCtrl = new SocketController(this, skt);
-			JavaChat.println("Connected!");
+			sendCmd("HELO " + name);
+			//JavaChat.println("Connected!");
 		} catch (UnknownHostException ex) {
 			JavaChat.println("Unknown Host: " + ex.getMessage());
+		} catch (ConnectException ex) {
+			JavaChat.println("Unable to connect to server: " + ex.getMessage());
+			throw ex;
 		} catch (IOException ex) {
 			JavaChat.println("IO Exception: " + ex.getMessage());
 		}
@@ -49,7 +56,7 @@ public class Client implements SocketHandler {
 	
 	@Override
 	public void disconnected(SocketController sktCtrl){
-		
+		JavaChat.disconnected();
 	}
 	
 	public void sendMsg(String msg) {
@@ -57,9 +64,10 @@ public class Client implements SocketHandler {
 	}
 
 	public void sendMsg(String msg, boolean echo) {
-		socketCtrl.sendMsg(msg);
+		String fullMessage = "[" + name + "] " + msg;
+		socketCtrl.sendMsg(fullMessage);
 		if (echo)
-			JavaChat.println(msg);
+			JavaChat.println(fullMessage);
 	}
 
 	public void sendCmd(String cmd){
@@ -67,10 +75,18 @@ public class Client implements SocketHandler {
 	}
 	
 	public boolean isConnected() {
-		return socketCtrl.isConnected();
+		return (socketCtrl == null) ? false : socketCtrl.isConnected();
 	}
 	
 	public void disconnect() {
 		socketCtrl.disconnect();
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		sendCmd("NAME " + this.name + " " + name);
+		this.name = name;
 	}
 }

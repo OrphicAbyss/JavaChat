@@ -1,5 +1,9 @@
 package javachat;
 
+import java.net.ConnectException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Main class for Java Chat
  * 
@@ -18,7 +22,7 @@ public class JavaChat {
 		instance.println(text);
 	}
 	
-	public static void startServer(String port){
+	public static boolean startServer(String port, String clientName){
 		println("Starting server on port " + port);
 		try {
 			int portVal = Integer.parseInt(port);
@@ -31,20 +35,28 @@ public class JavaChat {
 				} catch (InterruptedException ex) {}
 			}
 			// Set up a client connecting to our own server for us to send and receive on
-			client = new Client("localhost",portVal);
+			client = new Client("localhost",portVal, clientName);
+		} catch (ConnectException ex) {
+			return false;
 		} catch (NumberFormatException e){
 			println("Port is not a number.");
+			return false;
 		}
+		return true;
 	}
 	
-	public static void startClient(String hostname, String port){
+	public static boolean startClient(String hostname, String port, String clientName){
 		println("Connecting to server " + hostname + ":" + port);
 		try {
 			int portVal = Integer.parseInt(port);
-			client = new Client(hostname, portVal);
+			client = new Client(hostname, portVal, clientName);
+		} catch (ConnectException ex) {
+			return false;
 		} catch (NumberFormatException e){
 			println("Port is not a number.");
+			return false;
 		}
+		return true;
 	}
 	
 	/**
@@ -68,6 +80,15 @@ public class JavaChat {
 		if (!disconnected){
 			println("Not connected: Unable to disconnect.");
 		}
+	}
+	
+	/**
+	 * Called by the client when a disconnect happens so that the GUI doesn't
+	 * end up marked as connected when we are no longer connected.
+	 */
+	public static void disconnected(){
+		instance.disconnected();
+		println("Disconnected from server.");
 	}
 	
 	/**

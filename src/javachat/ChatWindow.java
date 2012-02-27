@@ -16,6 +16,8 @@ public class ChatWindow extends javax.swing.JFrame {
 	 */
 	public ChatWindow() {
 		initComponents();
+		
+		this.setTitle("Java Chat");
 	}
 
 	/**
@@ -42,6 +44,7 @@ public class ChatWindow extends javax.swing.JFrame {
         jTextFieldName = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jButtonClear = new javax.swing.JButton();
+        jButtonUpdateName = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -106,6 +109,14 @@ public class ChatWindow extends javax.swing.JFrame {
             }
         });
 
+        jButtonUpdateName.setText("Update Name");
+        jButtonUpdateName.setEnabled(false);
+        jButtonUpdateName.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonUpdateNameActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -118,24 +129,28 @@ public class ChatWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButtonClear)
                 .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jRadioButtonServer)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldName))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(jRadioButtonServer)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jRadioButtonClient)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabelHost)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldHostname, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabelPort)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jRadioButtonClient)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabelHost)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextFieldHostname, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabelPort)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextFieldPort, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jToggleButtonOnline))
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextFieldName))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButtonUpdateName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jToggleButtonOnline, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -151,9 +166,10 @@ public class ChatWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(jButtonUpdateName))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 433, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextFieldMessage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -174,15 +190,20 @@ public class ChatWindow extends javax.swing.JFrame {
 
 	private void jToggleButtonOnlineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jToggleButtonOnlineActionPerformed
 		if (jToggleButtonOnline.isSelected()){
-			// Connect
-			if (jRadioButtonServer.isSelected()){
-				// Server
-				JavaChat.startServer(jTextFieldPort.getText());
-			} else {
-				// Client
-				JavaChat.startClient(jTextFieldHostname.getText(), jTextFieldPort.getText());
+			boolean connected = false;
+			String name = jTextFieldName.getText();
+			if (validateName(name)){
+				// Connect
+				if (jRadioButtonServer.isSelected()){
+					// Server
+					connected = JavaChat.startServer(jTextFieldPort.getText(), name);
+				} else {
+					// Client
+					connected = JavaChat.startClient(jTextFieldHostname.getText(), jTextFieldPort.getText(), name);
+				}
 			}
-			lockServerDetails(true);
+			lockServerDetails(connected);
+			jToggleButtonOnline.setSelected(connected);
 		} else {
 			// Disconnect the client/server
 			JavaChat.disconnect();
@@ -197,9 +218,7 @@ public class ChatWindow extends javax.swing.JFrame {
 			String msg = jTextFieldMessage.getText();
 			if (!msg.equals("")){
 				jTextFieldMessage.setText("");
-				String name = jTextFieldName.getText();
-				String fullMsg = "[" + name + "] " + msg;
-				client.sendMsg(fullMsg);
+				client.sendMsg(msg);
 			}
 		} else {
 			println("Not connected: Unable to send message.");
@@ -215,12 +234,39 @@ public class ChatWindow extends javax.swing.JFrame {
 	private void jButtonClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonClearActionPerformed
 		jTextAreaChat.setText("");
 	}//GEN-LAST:event_jButtonClearActionPerformed
+
+	private void jButtonUpdateNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonUpdateNameActionPerformed
+		Client client = JavaChat.getClient();
+		if (client != null){
+			String name = jTextFieldName.getText();
+			if (validateName(name)){
+				client.setName(name);
+			}
+		}
+	}//GEN-LAST:event_jButtonUpdateNameActionPerformed
+	
+	private boolean validateName(String name){
+		if (name.contains(" ")){
+			println("Name can not contain spaces.");
+			return false;
+		}
+		return true;
+	}
 	
 	private void lockServerDetails(boolean lock){
 		jRadioButtonServer.setEnabled(!lock);
 		jRadioButtonClient.setEnabled(!lock);
 		jTextFieldHostname.setEnabled(!lock);
 		jTextFieldPort.setEnabled(!lock);
+		jButtonUpdateName.setEnabled(lock);
+	}
+	
+	/**
+	 * Resets form when an unexpected disconnect happens
+	 */
+	public void disconnected(){
+		lockServerDetails(false);
+		jToggleButtonOnline.setSelected(false);
 	}
 	
 	public void print(final String text){
@@ -259,6 +305,7 @@ public class ChatWindow extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroupModeType;
     private javax.swing.JButton jButtonClear;
     private javax.swing.JButton jButtonSend;
+    private javax.swing.JButton jButtonUpdateName;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabelHost;
     private javax.swing.JLabel jLabelPort;

@@ -7,7 +7,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- *
+ * SocketController deals with reading/writing and cleaning up a socket when
+ * the user wants to disconnect or when the server/client disconnects from us.
+ * 
  * @author DrLabman
  */
 public class SocketController implements Runnable {
@@ -19,20 +21,51 @@ public class SocketController implements Runnable {
 	private BufferedReader input;
 	
 	public SocketController(SocketHandler handler, Socket socket){
-		this.socket = socket;
-		this.handler = handler;
-		connected = false;
-		disconnect = false;
-		
-		new Thread(this).start();
+		try {
+			this.socket = socket;
+			this.handler = handler;
+			connected = false;
+			disconnect = false;
+			
+			output = new PrintWriter(socket.getOutputStream(), true);
+			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			
+			new Thread(this).start();
+		} catch (IOException ex) {
+			cleanup();
+		}
 	}
 	
+	/**
+	 * Cleanup code to shutdown a connection because the user wants to
+	 * disconnect or because something went wrong.
+	 */
+	private void cleanup(){
+		if (!socket.isOutputShutdown()){
+			sendCmd("QUIT");
+		}
+		if (input != null){
+			try { input.close(); } catch (IOException ex) {}
+		}
+		if (output != null)
+			output.close();
+		if (socket != null && !socket.isClosed()){
+			try { socket.close(); } catch (IOException ex) {
+				JavaChat.println("Exception closing socket: " + ex.getMessage());
+			}
+		}
+		setConnected(false);
+		handler.disconnected(this);
+	}
+	
+	/**
+	 * Main thread which reads data from the socket and passes it off to the
+	 * handler.
+	 */
 	@Override
 	public void run() {
 		try {
-			setConnected(true);			
-			output = new PrintWriter(socket.getOutputStream(), true);
-			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			setConnected(true);
 			
 			while (!disconnect){
 				if (!socket.isClosed() && input.ready()) {
@@ -50,21 +83,7 @@ public class SocketController implements Runnable {
 		} catch(java.io.IOException e){
 			JavaChat.println("IO Exception: " + e.getMessage());
 		} finally {
-			if (!socket.isOutputShutdown()){
-				sendCmd("QUIT");
-			}
-			if (input != null){
-				try { input.close(); } catch (IOException ex) {}
-			}
-			if (output != null)
-				output.close();
-			if (socket != null && !socket.isClosed()){
-				try { socket.close(); } catch (IOException ex) {
-					JavaChat.println("Exception closing socket: " + ex.getMessage());
-				}
-			}
-			setConnected(false);
-			handler.disconnected(this);
+			cleanup();
 		}
 	}
 
