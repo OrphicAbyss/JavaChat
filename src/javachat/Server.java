@@ -3,19 +3,6 @@ package javachat;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.teleal.cling.UpnpService;
-import org.teleal.cling.UpnpServiceImpl;
-import org.teleal.cling.model.meta.Action;
-import org.teleal.cling.model.meta.ActionArgument;
-import org.teleal.cling.model.meta.Device;
-import org.teleal.cling.model.meta.Service;
-import org.teleal.cling.model.types.UDAServiceId;
-import org.teleal.cling.registry.DefaultRegistryListener;
-import org.teleal.cling.registry.Registry;
-import org.teleal.cling.registry.RegistryListener;
-import org.teleal.cling.support.model.PortMapping;
 
 /**
  * Server class, waits for connection on given port
