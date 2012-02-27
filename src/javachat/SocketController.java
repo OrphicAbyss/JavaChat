@@ -30,9 +30,7 @@ public class SocketController implements Runnable {
 	@Override
 	public void run() {
 		try {
-			setConnected(true);
-			JavaChat.println("Connected!");
-			
+			setConnected(true);			
 			output = new PrintWriter(socket.getOutputStream(), true);
 			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			

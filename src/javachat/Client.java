@@ -13,13 +13,14 @@ import java.net.UnknownHostException;
  * 
  * @author DrLabman
  */
-public class Client implements ChatInterface, SocketHandler {
+public class Client implements SocketHandler {
 	private SocketController socketCtrl;
 	
 	public Client(String hostname, int port){	
 		try {
 			Socket skt = new Socket(hostname, port);
 			socketCtrl = new SocketController(this, skt);
+			JavaChat.println("Connected!");
 		} catch (UnknownHostException ex) {
 			JavaChat.println("Unknown Host: " + ex.getMessage());
 		} catch (IOException ex) {
@@ -51,7 +52,6 @@ public class Client implements ChatInterface, SocketHandler {
 		
 	}
 	
-	@Override
 	public void sendMsg(String msg) {
 		sendMsg(msg,true);
 	}
@@ -66,12 +66,10 @@ public class Client implements ChatInterface, SocketHandler {
 		socketCtrl.sendCmd(cmd);
 	}
 	
-	@Override
 	public boolean isConnected() {
 		return socketCtrl.isConnected();
 	}
 	
-	@Override
 	public void disconnect() {
 		socketCtrl.disconnect();
 	}

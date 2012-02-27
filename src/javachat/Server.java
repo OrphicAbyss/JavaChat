@@ -40,7 +40,7 @@ public class Server implements Runnable, SocketHandler {
 			while (!disconnect){
 				Socket skt = srvr.accept();
 				clients.add(new SocketController(this, skt));
-				JavaChat.println("Client connected!");
+				JavaChat.println("Client connected...");
 			}
 		} catch (SocketException ex) {
 			if (!ex.getMessage().equals("socket closed"))
@@ -64,6 +64,7 @@ public class Server implements Runnable, SocketHandler {
 			if (msg.startsWith("CMD")){
 				if (msg.endsWith("QUIT")){
 					socketControl.disconnect();
+					JavaChat.println("Client disconnected.");
 				} else {
 					JavaChat.println("Unknown command from connection: " + msg);
 				}
