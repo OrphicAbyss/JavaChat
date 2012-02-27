@@ -63,7 +63,7 @@ public class Server implements Runnable, SocketHandler {
 			
 			if (msg.startsWith("CMD")){
 				if (msg.endsWith("QUIT")){
-					disconnect();
+					socketControl.disconnect();
 				} else {
 					JavaChat.println("Unknown command from connection: " + msg);
 				}
@@ -73,13 +73,18 @@ public class Server implements Runnable, SocketHandler {
 		}
 	}
 	
+	@Override
+	public void disconnected(SocketController client){
+		clients.remove(client);
+	}
+	
 	public void sendMsg(SocketController sender, String msg) {
 		for (SocketController client: clients){
 			if (client != sender)
 				client.sendMsg(msg);
 		}
 	}
-
+	
 	public void disconnect() {
 		disconnect = true;
 		for (SocketController client: clients){

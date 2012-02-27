@@ -47,6 +47,11 @@ public class Client implements ChatInterface, SocketHandler {
 	}
 	
 	@Override
+	public void disconnected(SocketController sktCtrl){
+		
+	}
+	
+	@Override
 	public void sendMsg(String msg) {
 		sendMsg(msg,true);
 	}

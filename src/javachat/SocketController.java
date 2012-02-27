@@ -66,6 +66,7 @@ public class SocketController implements Runnable {
 				}
 			}
 			setConnected(false);
+			handler.disconnected(this);
 		}
 	}
 
