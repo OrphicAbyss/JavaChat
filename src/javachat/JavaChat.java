@@ -1,5 +1,8 @@
 package javachat;
 
+import javachat.network.Server;
+import javachat.network.Client;
+import javachat.ui.ChatWindow;
 import java.net.ConnectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

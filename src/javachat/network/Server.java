@@ -1,10 +1,14 @@
-package javachat;
+package javachat.network;
 
+import javachat.network.UPnP;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
+import javachat.JavaChat;
+import javachat.network.socket.SocketController;
+import javachat.network.socket.SocketHandler;
 
 /**
  * Server class, waits for connection on given port

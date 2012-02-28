@@ -1,10 +1,11 @@
-package javachat;
+package javachat.network.socket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import javachat.JavaChat;
 
 /**
  * SocketController deals with reading/writing and cleaning up a socket when

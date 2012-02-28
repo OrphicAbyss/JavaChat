@@ -1,4 +1,4 @@
-package javachat;
+package javachat.network.socket;
 
 /**
  * Classes that implement this interface handle the data which is read out

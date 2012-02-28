@@ -1,6 +1,8 @@
-package javachat;
+package javachat.ui;
 
 import java.awt.Rectangle;
+import javachat.network.Client;
+import javachat.JavaChat;
 import javax.swing.BoundedRangeModel;
 import javax.swing.JComponent;
 import javax.swing.JScrollBar;

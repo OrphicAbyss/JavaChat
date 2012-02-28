@@ -1,9 +1,12 @@
-package javachat;
+package javachat.network;
 
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import javachat.JavaChat;
+import javachat.network.socket.SocketController;
+import javachat.network.socket.SocketHandler;
 
 /**
  * This class acts as a pass through to the SocketController which handles the
