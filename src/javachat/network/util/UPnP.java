@@ -1,4 +1,4 @@
-package javachat.network;
+package javachat.network.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,43 +39,19 @@ public class UPnP {
 	 */
 	public static void RegisterPort(int port){
 		if (upnpService != null){
-			JavaChat.println("UPnP service already started, will shutdown and restart.");
+			JavaChat.println("Warning: UPnP service already started, will shutdown and restart.");
 			UnregisterPort();
 		}
-		
-		BufferedReader in = null;
-		try {
-			URL whatismyip = new URL("http://automation.whatismyip.com/n09230945.asp");
-			in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
-			String ip = in.readLine(); //you get the IP as a String
-			JavaChat.println("External ip address is: " + ip);
-		} catch (MalformedURLException ex) {
-			JavaChat.println("Error getting the external ip address: " + ex.getMessage());
-		} catch (IOException ex) {
-			JavaChat.println("Error getting the external ip address: " + ex.getMessage());
-		} finally {
-			try {
-				in.close();
-			} catch (IOException ex) {
-				Logger.getLogger(UPnP.class.getName()).log(Level.SEVERE, null, ex);
-			}
-		}
-		
-		try {
-			InetAddress addr = InetAddress.getLocalHost();
-			// Get IP Address
-			String ipAddr = addr.getHostAddress();
-			// Get hostname
-			String hostname = addr.getHostName();
-			
-			JavaChat.println("Creating server on: " + hostname + " on ip: " + ipAddr);
+				
+		String ipAddr = IPUtil.getInternalIPAddress();
+		if (ipAddr != null){
+			// Port Mapping
 			PortMapping desiredMapping = new PortMapping(port, ipAddr, PortMapping.Protocol.TCP, "JavaChat Port Mapping");
-			
 			upnpService = new UpnpServiceImpl( new PortMappingListener(desiredMapping));//, CreateListenerToPrintUPnPDeviceData());
 			upnpService.getControlPoint().search();
-		} catch (UnknownHostException e) {
-			JavaChat.println("Error getting the computers hostname: " + e.getMessage());
-			JavaChat.println("UPnP NAT port mapping may not be in place.");
+		} else {
+			JavaChat.println("Error getting internal IP address.");
+			JavaChat.println("Unable to setup UPnP NAT port mapping without IP address.");
 		}
 	}
 	

@@ -1,6 +1,5 @@
 package javachat.network;
 
-import javachat.network.UPnP;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,6 +8,8 @@ import java.util.ArrayList;
 import javachat.JavaChat;
 import javachat.network.socket.SocketController;
 import javachat.network.socket.SocketHandler;
+import javachat.network.util.IPUtil;
+import javachat.network.util.UPnP;
 
 /**
  * Server class, waits for connection on given port
@@ -29,6 +30,8 @@ public class Server implements Runnable, SocketHandler {
 		
 		clients = new ArrayList<SocketController>();
 		
+		IPUtil.printExternalIP();
+		IPUtil.printInternalIP();
 		UPnP.RegisterPort(port);
 
 		Thread t = new Thread(this);
