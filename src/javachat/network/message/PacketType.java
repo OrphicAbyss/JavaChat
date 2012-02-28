@@ -1,4 +1,4 @@
-package javachat.network;
+package javachat.network.message;
 
 /**
  * Types of packets
@@ -6,5 +6,5 @@ package javachat.network;
  * @author DrLabman
  */
 public enum PacketType {
-	MSG, HALO, NAME, QUIT
+	MSG, HELO, NAME, QUIT
 }

@@ -5,6 +5,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import javachat.JavaChat;
+import javachat.network.message.Packet;
 import javachat.network.socket.SocketController;
 import javachat.network.socket.SocketHandler;
 
@@ -26,8 +27,7 @@ public class Client implements SocketHandler {
 		try {
 			Socket skt = new Socket(hostname, port);
 			socketCtrl = new SocketController(this, skt);
-			sendCmd("HELO " + name);
-			//JavaChat.println("Connected!");
+			sendHello();
 		} catch (UnknownHostException ex) {
 			JavaChat.println("Unknown Host: " + ex.getMessage());
 		} catch (ConnectException ex) {
@@ -39,20 +39,26 @@ public class Client implements SocketHandler {
 	}
 
 	@Override
-	public void receiveMsg(SocketController sktCtrl, String msg){
-		if (msg.length() != 0){
-			if (msg.endsWith("\n")){
-				msg = msg.substring(0,msg.length()-1);
-			}
-			
-			if (msg.startsWith("CMD")){
-				if (msg.endsWith("QUIT")){
-					disconnect();
-				} else {
-					JavaChat.println("Unknown command from connection: " + msg);
-				}
-			} else if (msg.startsWith("MSG")) {
-				JavaChat.println(msg.substring(4)); // Output message
+	public void receiveMsg(SocketController sktCtrl, Packet msg){
+		if (msg != null){
+						switch (msg.getType()){
+				case MSG:
+					// Send message back to all other clients
+					JavaChat.println(msg.getData()[0]);
+					break;
+				case QUIT:
+					if (!socketCtrl.isDisconnecting())
+						disconnect();
+					JavaChat.println("Client disconnected.");
+					break;
+				case HELO:
+				case NAME:
+					// Not expected
+					JavaChat.println("Received unexpected packet type: " + msg.getType().name());
+					break;
+				default:
+					JavaChat.println("Unknown packet type from connection: " + msg.getType().name());
+					break;
 			}
 		}
 	}
@@ -63,17 +69,12 @@ public class Client implements SocketHandler {
 	}
 	
 	public void sendMsg(String msg) {
-		sendMsg(msg,true);
-	}
-
-	public void sendMsg(String msg, boolean echo) {
 		String fullMessage = "[" + name + "] " + msg;
 		socketCtrl.sendMsg(fullMessage);
-		if (echo)
-			JavaChat.println(fullMessage);
+		JavaChat.println(fullMessage);
 	}
 
-	public void sendCmd(String cmd){
+	public void sendCmd(Packet cmd){
 		socketCtrl.sendCmd(cmd);
 	}
 	
@@ -85,11 +86,15 @@ public class Client implements SocketHandler {
 		socketCtrl.disconnect();
 	}
 
+	private void sendHello(){
+		sendCmd(Packet.createHeloPacket(name));
+	}
+	
 	/**
 	 * @param name the name to set
 	 */
 	public void setName(String name) {
-		sendCmd("NAME " + this.name + " " + name);
+		sendCmd(Packet.createNamePacket(this.name, name));
 		this.name = name;
 	}
 }

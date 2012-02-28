@@ -1,5 +1,7 @@
 package javachat.network.socket;
 
+import javachat.network.message.Packet;
+
 /**
  * Classes that implement this interface handle the data which is read out
  * of a socket by the SocketController class.
@@ -14,7 +16,7 @@ public interface SocketHandler {
 	 * @param sktCtrl The Socket controller that received the message
 	 * @param msg String received from the socket
 	 */
-	public void receiveMsg(SocketController sktCtrl, String msg);
+	public void receiveMsg(SocketController sktCtrl, Packet msg);
 	
 	/**
 	 * When a socket is closed the call back is used to alert the creating class.

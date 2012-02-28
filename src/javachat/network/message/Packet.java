@@ -1,4 +1,4 @@
-package javachat.network;
+package javachat.network.message;
 
 import java.io.Serializable;
 
@@ -24,5 +24,21 @@ public class Packet implements Serializable {
 	
 	public String[] getData(){
 		return data;
+	}
+	
+	public static Packet createHeloPacket(String name){
+		return new Packet(PacketType.HELO, new String[]{name});
+	}
+	
+	public static Packet createNamePacket(String oldName, String newName){
+		return new Packet(PacketType.NAME, new String[]{oldName,newName});
+	}
+	
+	public static Packet createMsgPacket(String msg){
+		return new Packet(PacketType.MSG, new String[]{msg});
+	}
+	
+	public static Packet createQuitPacket(){
+		return new Packet(PacketType.QUIT, null);
 	}
 }

@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import javachat.JavaChat;
+import javachat.network.message.Packet;
+import javachat.network.message.PacketType;
 import javachat.network.socket.SocketController;
 import javachat.network.socket.SocketHandler;
 import javachat.network.util.IPUtil;
@@ -30,8 +32,10 @@ public class Server implements Runnable, SocketHandler {
 		
 		clients = new ArrayList<SocketController>();
 		
+		// Print useful information for user
 		IPUtil.printExternalIP();
 		IPUtil.printInternalIP();
+		// Register UPnP port mapping
 		UPnP.RegisterPort(port);
 
 		Thread t = new Thread(this);
@@ -60,28 +64,29 @@ public class Server implements Runnable, SocketHandler {
 	}
 
 	@Override
-	public void receiveMsg(SocketController socketControl, String msg){
-		if (msg.length() != 0){
-			if (msg.endsWith("\n")){
-				msg = msg.substring(0,msg.length()-1);
-			}
-			
-			if (msg.startsWith("CMD")){
-				String cmd = msg.substring(4);
-				if (cmd.equals("QUIT")){
+	public void receiveMsg(SocketController socketControl, Packet msg){
+		if (msg != null){			
+			switch (msg.getType()){
+				case MSG:
+					// Send message back to all other clients
+					sendMsg(socketControl, msg);
+					break;
+				case HELO:
+					String connectedMsg = msg.getData()[0] + " connected...";
+					sendMsg(null, Packet.createMsgPacket(connectedMsg));
+					break;
+				case NAME:
+					String names[] = msg.getData();
+					String newNameMsg = names[0] + " changed name to " + names[1];
+					sendMsg(null, Packet.createMsgPacket(newNameMsg));
+					break;
+				case QUIT:
 					socketControl.disconnect();
 					JavaChat.println("Client disconnected.");
-				} else if (cmd.startsWith("HELO")){
-					String name = cmd.substring(5);
-					sendMsg(null, name + " connected...");
-				} else if (cmd.startsWith("NAME")){
-					String names[] = cmd.substring(5).split(" ");
-					sendMsg(null, names[0] + " changed name to " + names[1]);
-				} else {
-					JavaChat.println("Unknown command from connection: " + msg);
-				}
-			} else if (msg.startsWith("MSG")) {
-				sendMsg(socketControl, msg.substring(4));
+					break;
+				default:
+					JavaChat.println("Unknown packet type from connection: " + msg.getType());
+					break;
 			}
 		}
 	}
@@ -91,7 +96,7 @@ public class Server implements Runnable, SocketHandler {
 		clients.remove(client);
 	}
 	
-	public void sendMsg(SocketController sender, String msg) {
+	public void sendMsg(SocketController sender, Packet msg) {
 		for (SocketController client: clients){
 			if (client != sender)
 				client.sendMsg(msg);
