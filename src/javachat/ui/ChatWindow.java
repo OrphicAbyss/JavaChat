@@ -258,7 +258,7 @@ public class ChatWindow extends javax.swing.JFrame {
 	private void lockServerDetails(boolean lock){
 		jRadioButtonServer.setEnabled(!lock);
 		jRadioButtonClient.setEnabled(!lock);
-		jTextFieldHostname.setEnabled(!lock);
+		jTextFieldHostname.setEnabled(!lock && !jRadioButtonServer.isSelected());
 		jTextFieldPort.setEnabled(!lock);
 		jButtonUpdateName.setEnabled(lock);
 	}
