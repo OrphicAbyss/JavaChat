@@ -14,9 +14,8 @@ import javachat.network.message.PacketType;
  * 
  * @author DrLabman
  */
-public class SocketController implements Runnable {
+public abstract class SocketController implements Runnable {
 	private Socket socket;
-	private SocketHandler handler;
 	private boolean connected;
 	private boolean disconnect;
 	private ObjectOutputStream output;
@@ -24,10 +23,9 @@ public class SocketController implements Runnable {
 	//private PrintWriter output;
 	//private BufferedReader input;
 	
-	public SocketController(SocketHandler handler, Socket socket){
+	public SocketController(Socket socket){
 		try {
 			this.socket = socket;
-			this.handler = handler;
 			connected = false;
 			disconnect = false;
 			
@@ -61,7 +59,7 @@ public class SocketController implements Runnable {
 			}
 		}
 		setConnected(false);
-		handler.disconnected(this);
+		disconnected();
 	}
 	
 	/**
@@ -76,7 +74,7 @@ public class SocketController implements Runnable {
 			while (!disconnect){
 				if (!socket.isClosed()){// && input.available() > 0) {
 					Packet msg = (Packet)input.readObject();
-					handler.receiveMsg(this, msg);
+					receiveMsg(msg);
 				} else {
 					try { Thread.sleep(100); } 
 					catch (InterruptedException ex) {}
@@ -102,10 +100,6 @@ public class SocketController implements Runnable {
 	
 	public void sendMsg(Packet msg){
 		sendData(msg);
-	}
-	
-	public void sendCmd(Packet cmd){
-		sendData(cmd);
 	}
 	
 	private void sendQuit(){
@@ -148,11 +142,21 @@ public class SocketController implements Runnable {
 	public void disconnect() {
 		this.disconnect = true;
 		sendQuit();
-//		try {
-//			socket.shutdownInput();
-//			//input.close();
-//		} catch (IOException ex) {
-//			JavaChat.println("Error disconnecting: " + ex.getMessage());
-//		}
 	}
+	
+	/**
+	 * Each line that is received from the socket is sent to this method for
+	 * handling
+	 * 
+	 * @param sktCtrl The Socket controller that received the message
+	 * @param msg String received from the socket
+	 */
+	public abstract void receiveMsg(Packet msg);
+	
+	/**
+	 * When a socket is closed the call back is used to alert the creating class.
+	 * 
+	 * @param sktCtrl The Socket controller that disconnected
+	 */
+	public abstract void disconnected();
 }

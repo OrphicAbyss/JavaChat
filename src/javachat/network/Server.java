@@ -7,9 +7,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import javachat.JavaChat;
 import javachat.network.message.Packet;
-import javachat.network.message.PacketType;
 import javachat.network.socket.SocketController;
-import javachat.network.socket.SocketHandler;
 import javachat.network.util.IPUtil;
 import javachat.network.util.UPnP;
 
@@ -18,7 +16,7 @@ import javachat.network.util.UPnP;
  * 
  * @author DrLabman
  */
-public class Server implements Runnable, SocketHandler {
+public class Server implements Runnable {
 	private int port;
 	private boolean connected;
 	private boolean disconnect;
@@ -49,7 +47,7 @@ public class Server implements Runnable, SocketHandler {
 			connected = true;
 			while (!disconnect){
 				Socket skt = srvr.accept();
-				clients.add(new SocketController(this, skt));
+				clients.add(new ClientSocket(skt));
 			}
 		} catch (SocketException ex) {
 			if (!ex.getMessage().equals("socket closed"))
@@ -61,39 +59,6 @@ public class Server implements Runnable, SocketHandler {
 	
 	public boolean isConnected() {
 		return connected;
-	}
-
-	@Override
-	public void receiveMsg(SocketController socketControl, Packet msg){
-		if (msg != null){			
-			switch (msg.getType()){
-				case MSG:
-					// Send message back to all other clients
-					sendMsg(socketControl, msg);
-					break;
-				case HELO:
-					String connectedMsg = msg.getData()[0] + " connected...";
-					sendMsg(null, Packet.createMsgPacket(connectedMsg));
-					break;
-				case NAME:
-					String names[] = msg.getData();
-					String newNameMsg = names[0] + " changed name to " + names[1];
-					sendMsg(null, Packet.createMsgPacket(newNameMsg));
-					break;
-				case QUIT:
-					socketControl.disconnect();
-					JavaChat.println("Client disconnected.");
-					break;
-				default:
-					JavaChat.println("Unknown packet type from connection: " + msg.getType());
-					break;
-			}
-		}
-	}
-	
-	@Override
-	public void disconnected(SocketController client){
-		clients.remove(client);
 	}
 	
 	public void sendMsg(SocketController sender, Packet msg) {
@@ -117,5 +82,47 @@ public class Server implements Runnable, SocketHandler {
 		JavaChat.println("No longer listening for connections.");
 		
 		UPnP.UnregisterPort();
+	}
+	
+	/**
+	 * Class for handling incoming messages and the disconnected callback.
+	 */
+	private class ClientSocket extends SocketController {
+		public ClientSocket(Socket socket){
+			super(socket);
+		}
+		
+		@Override
+		public void receiveMsg(Packet msg){
+			if (msg != null){			
+				switch (msg.getType()){
+					case MSG:
+						// Send message back to all other clients
+						sendMsg(this, msg);
+						break;
+					case HELO:
+						String connectedMsg = msg.getData()[0] + " connected...";
+						sendMsg(null, Packet.createMsgPacket(connectedMsg));
+						break;
+					case NAME:
+						String names[] = msg.getData();
+						String newNameMsg = names[0] + " changed name to " + names[1];
+						sendMsg(null, Packet.createMsgPacket(newNameMsg));
+						break;
+					case QUIT:
+						this.disconnect();
+						JavaChat.println("Client disconnected.");
+						break;
+					default:
+						JavaChat.println("Unknown packet type from connection: " + msg.getType());
+						break;
+				}
+			}
+		}
+
+		@Override
+		public void disconnected(){
+			clients.remove(this);
+		}
 	}
 }

@@ -7,7 +7,6 @@ import java.net.UnknownHostException;
 import javachat.JavaChat;
 import javachat.network.message.Packet;
 import javachat.network.socket.SocketController;
-import javachat.network.socket.SocketHandler;
 
 /**
  * This class acts as a pass through to the SocketController which handles the
@@ -18,16 +17,20 @@ import javachat.network.socket.SocketHandler;
  * 
  * @author DrLabman
  */
-public class Client implements SocketHandler {
+public class Client extends SocketController {
 	private SocketController socketCtrl;
 	private String name;
 	
-	public Client(String hostname, int port, String name) throws ConnectException{	
-		this.name = name;
+	public static Client createClient(String hostname, int port, String name) throws ConnectException{
 		try {
+			//Create a socket to connect with
 			Socket skt = new Socket(hostname, port);
-			socketCtrl = new SocketController(this, skt);
-			sendHello();
+			// Create the client object using the socket
+			Client client = new Client(skt);
+			// Set the clients name and send the hello message to the server
+			client.name = name;
+			client.sendHello();
+			return client;
 		} catch (UnknownHostException ex) {
 			JavaChat.println("Unknown Host: " + ex.getMessage());
 		} catch (ConnectException ex) {
@@ -36,10 +39,16 @@ public class Client implements SocketHandler {
 		} catch (IOException ex) {
 			JavaChat.println("IO Exception: " + ex.getMessage());
 		}
+		// Something went wrong.
+		return null;
+	}
+	
+	private Client(Socket socket){
+		super(socket);
 	}
 
 	@Override
-	public void receiveMsg(SocketController sktCtrl, Packet msg){
+	public void receiveMsg(Packet msg){
 		if (msg != null){
 						switch (msg.getType()){
 				case MSG:
@@ -64,37 +73,32 @@ public class Client implements SocketHandler {
 	}
 	
 	@Override
-	public void disconnected(SocketController sktCtrl){
+	public void disconnected(){
 		JavaChat.disconnected();
 	}
 	
+	/**
+	 * Override sendMsg because we need to prepend our name to our messages
+	 * and we want to print the message as it doesn't echo back to us.
+	 * 
+	 * @param msg 
+	 */
+	@Override
 	public void sendMsg(String msg) {
 		String fullMessage = "[" + name + "] " + msg;
-		socketCtrl.sendMsg(fullMessage);
+		super.sendMsg(fullMessage);
 		JavaChat.println(fullMessage);
 	}
-
-	public void sendCmd(Packet cmd){
-		socketCtrl.sendCmd(cmd);
-	}
 	
-	public boolean isConnected() {
-		return (socketCtrl == null) ? false : socketCtrl.isConnected();
-	}
-	
-	public void disconnect() {
-		socketCtrl.disconnect();
-	}
-
 	private void sendHello(){
-		sendCmd(Packet.createHeloPacket(name));
+		sendMsg(Packet.createHeloPacket(name));
 	}
 	
 	/**
 	 * @param name the name to set
 	 */
 	public void setName(String name) {
-		sendCmd(Packet.createNamePacket(this.name, name));
+		sendMsg(Packet.createNamePacket(this.name, name));
 		this.name = name;
 	}
 }
