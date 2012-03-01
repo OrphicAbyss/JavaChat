@@ -6,5 +6,5 @@ package javachat.network.message;
  * @author DrLabman
  */
 public enum PacketType {
-	MSG, HELO, NAME, QUIT
+	MSG, HELO, NAME, QUIT, PING, PONG
 }

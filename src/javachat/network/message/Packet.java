@@ -41,4 +41,12 @@ public class Packet implements Serializable {
 	public static Packet createQuitPacket(){
 		return new Packet(PacketType.QUIT, null);
 	}
+	
+	public static Packet createPingPacket(){
+		return new Packet(PacketType.PING, null);
+	}
+	
+	public static Packet createPongPacket(){
+		return new Packet(PacketType.PONG, null);
+	}
 }

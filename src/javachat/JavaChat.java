@@ -1,11 +1,9 @@
 package javachat;
 
-import javachat.network.Server;
-import javachat.network.Client;
-import javachat.ui.ChatWindow;
 import java.net.ConnectException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javachat.network.Client;
+import javachat.network.Server;
+import javachat.ui.ChatWindow;
 
 /**
  * Main class for Java Chat
@@ -38,7 +36,7 @@ public class JavaChat {
 				} catch (InterruptedException ex) {}
 			}
 			// Set up a client connecting to our own server for us to send and receive on
-			client = new Client("localhost",portVal, clientName);
+			client = Client.createClient("localhost", portVal, clientName);
 		} catch (ConnectException ex) {
 			return false;
 		} catch (NumberFormatException e){
@@ -52,7 +50,7 @@ public class JavaChat {
 		println("Connecting to server " + hostname + ":" + port);
 		try {
 			int portVal = Integer.parseInt(port);
-			client = new Client(hostname, portVal, clientName);
+			client = Client.createClient("localhost", portVal, clientName);
 		} catch (ConnectException ex) {
 			return false;
 		} catch (NumberFormatException e){

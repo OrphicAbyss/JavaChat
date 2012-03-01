@@ -55,6 +55,10 @@ public class Client extends SocketController {
 					// Send message back to all other clients
 					JavaChat.println(msg.getData()[0]);
 					break;
+				case PING:
+					sendMsg(Packet.createPongPacket());
+					//JavaChat.println("Ping!");
+					break;
 				case QUIT:
 					if (!socketCtrl.isDisconnecting())
 						disconnect();
